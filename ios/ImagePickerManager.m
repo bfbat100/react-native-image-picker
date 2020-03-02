@@ -38,6 +38,7 @@ RCT_EXPORT_METHOD(launchImageLibrary:(NSDictionary *)options callback:(RCTRespon
 
 RCT_EXPORT_METHOD(showImagePicker:(NSDictionary *)options callback:(RCTResponseSenderBlock)callback)
 {
+    
     self.callback = callback; // Save the callback so we can use it from the delegate methods
     self.options = options;
 
@@ -452,7 +453,9 @@ RCT_EXPORT_METHOD(showImagePicker:(NSDictionary *)options callback:(RCTResponseS
 
                 if (videoURL) { // Protect against reported crash
                   NSError *error = nil;
-                  [fileManager moveItemAtURL:videoURL toURL:videoDestinationURL error:&error];
+                    // 将moveItemAtURL替换为copyItemAtURL 解决ios13 没有权限上传视频问题
+//                  [fileManager moveItemAtURL:videoURL toURL:videoDestinationURL error:&error];
+                  [fileManager copyItemAtURL:videoURL toURL:videoDestinationURL error:&error];
                   if (error) {
                       self.callback(@[@{@"error": error.localizedFailureReason}]);
                       return;
