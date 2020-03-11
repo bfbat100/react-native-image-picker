@@ -163,9 +163,12 @@ RCT_EXPORT_METHOD(showImagePicker:(NSDictionary *)options callback:(RCTResponseS
         else if ([[self.options objectForKey:@"videoQuality"] isEqualToString:@"low"]) {
             self.picker.videoQuality = UIImagePickerControllerQualityTypeLow;
         }
+        else if ([[self.options objectForKey:@"videoQuality"] isEqualToString:@"960x540"]) {
+                   self.picker.videoQuality = UIImagePickerControllerQualityTypeIFrame960x540;
+        }
+        
         else {
-//            self.picker.videoQuality = UIImagePickerControllerQualityTypeMedium;
-            self.picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
+            self.picker.videoQuality = UIImagePickerControllerQualityTypeMedium;
         }
 
         id durationLimit = [self.options objectForKey:@"durationLimit"];
@@ -511,53 +514,56 @@ RCT_EXPORT_METHOD(showImagePicker:(NSDictionary *)options callback:(RCTResponseS
             }
         }
         else {
-            
-//            self.callback(@[self.response]);
-            //在此回调视频地址，回调前进行压缩
-            NSURL *newVideoUrl ; //一般.mp4
-            NSDateFormatter *formater = [[NSDateFormatter alloc] init];//用时间给文件全名，以免重复
-            [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss"];
+            NSURL *videoDestinationURL = [NSURL fileURLWithPath: path];
+            //判断一下视频大小是否大于30M，大于30M进行压缩，否则不进行压缩
+            if ([self getFileSize:[videoDestinationURL path]] < 30000.0){
+                self.callback(@[self.response]);
+            }else {  //大于30M
+                //在此回调视频地址，回调前进行压缩
+                            NSURL *newVideoUrl ; //一般.mp4
+                            NSDateFormatter *formater = [[NSDateFormatter alloc] init];//用时间给文件全名，以免重复
+                            [formater setDateFormat:@"yyyy-MM-dd-HH:mm:ss"];
 
-            newVideoUrl = [NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingFormat:@"/Documents/output-%@.mp4", [formater stringFromDate:[NSDate date]]]] ;
-            
-            AVURLAsset *avAsset = [AVURLAsset URLAssetWithURL:self.myVideoURL options:nil];
-            
-            AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:avAsset presetName:AVAssetExportPreset640x480];
-            //  NSLog(resultPath);
-            exportSession.outputURL = newVideoUrl;
-            exportSession.outputFileType = AVFileTypeMPEG4;
-            exportSession.shouldOptimizeForNetworkUse= YES;
-            [exportSession exportAsynchronouslyWithCompletionHandler:^(void)
-             {
-                 switch (exportSession.status) {
-                     case AVAssetExportSessionStatusCancelled:
-                         NSLog(@"AVAssetExportSessionStatusCancelled");
-                         break;
-                     case AVAssetExportSessionStatusUnknown:
-                         NSLog(@"AVAssetExportSessionStatusUnknown");
-                         break;
-                     case AVAssetExportSessionStatusWaiting:
-                         NSLog(@"AVAssetExportSessionStatusWaiting");
-                         break;
-                     case AVAssetExportSessionStatusExporting:
-                         NSLog(@"AVAssetExportSessionStatusExporting");
-                         break;
-                     case AVAssetExportSessionStatusCompleted:
-                         NSLog(@"AVAssetExportSessionStatusCompleted");
-                        
-                         NSLog(@"%@",[NSString stringWithFormat:@"压缩后时长：%f s", [self getVideoLength:newVideoUrl]]);
-                         NSLog(@"%@", [NSString stringWithFormat:@"压缩后大小：%.2f kb", [self getFileSize:[newVideoUrl path]]]);
-//                         UISaveVideoAtPathToSavedPhotosAlbum([newVideoUrl path], self, nil, NULL);//这个是保存到手机相册
-                         [self.response setObject:[newVideoUrl absoluteString] forKey:@"uri"];
-                         self.callback(@[self.response]);
-                         break;
-                     case AVAssetExportSessionStatusFailed:
-                         NSLog(@"AVAssetExportSessionStatusFailed");
-                         break;
-                 }
-                 
-             }];
+                            newVideoUrl = [NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingFormat:@"/Documents/output-%@.mp4", [formater stringFromDate:[NSDate date]]]] ;
 
+                            AVURLAsset *avAsset = [AVURLAsset URLAssetWithURL:self.myVideoURL options:nil];
+                            
+                            AVAssetExportSession *exportSession = [[AVAssetExportSession alloc] initWithAsset:avAsset presetName:AVAssetExportPresetHighestQuality];
+                            //  NSLog(resultPath);
+                            exportSession.outputURL = newVideoUrl;
+                            exportSession.outputFileType = AVFileTypeMPEG4;
+                            exportSession.shouldOptimizeForNetworkUse= YES;
+                            [exportSession exportAsynchronouslyWithCompletionHandler:^(void)
+                             {
+                                 switch (exportSession.status) {
+                                     case AVAssetExportSessionStatusCancelled:
+                                         NSLog(@"AVAssetExportSessionStatusCancelled");
+                                         break;
+                                     case AVAssetExportSessionStatusUnknown:
+                                         NSLog(@"AVAssetExportSessionStatusUnknown");
+                                         break;
+                                     case AVAssetExportSessionStatusWaiting:
+                                         NSLog(@"AVAssetExportSessionStatusWaiting");
+                                         break;
+                                     case AVAssetExportSessionStatusExporting:
+                                         NSLog(@"AVAssetExportSessionStatusExporting");
+                                         break;
+                                     case AVAssetExportSessionStatusCompleted:
+                                         NSLog(@"AVAssetExportSessionStatusCompleted");
+
+//                                         NSLog(@"%@",[NSString stringWithFormat:@"压缩后时长：%f s", [self getVideoLength:newVideoUrl]]);
+//                                         NSLog(@"%@", [NSString stringWithFormat:@"压缩后大小：%.2f kb", [self getFileSize:[newVideoUrl path]]]);
+                //                         UISaveVideoAtPathToSavedPhotosAlbum([newVideoUrl path], self, nil, NULL);//这个是保存到手机相册
+                                         [self.response setObject:[newVideoUrl absoluteString] forKey:@"uri"];
+                                         self.callback(@[self.response]);
+                                         break;
+                                     case AVAssetExportSessionStatusFailed:
+                                         NSLog(@"AVAssetExportSessionStatusFailed");
+                                         break;
+                                 }
+
+                             }];
+            }
         }
     };
 
