@@ -161,14 +161,14 @@ RCT_EXPORT_METHOD(showImagePicker:(NSDictionary *)options callback:(RCTResponseS
             self.picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
         }
         else if ([[self.options objectForKey:@"videoQuality"] isEqualToString:@"low"]) {
-            self.picker.videoQuality = UIImagePickerControllerQualityTypeLow;
+            self.picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
         }
         else if ([[self.options objectForKey:@"videoQuality"] isEqualToString:@"960x540"]) {
                    self.picker.videoQuality = UIImagePickerControllerQualityTypeIFrame960x540;
         }
         
         else {
-            self.picker.videoQuality = UIImagePickerControllerQualityTypeMedium;
+            self.picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
         }
 
         id durationLimit = [self.options objectForKey:@"durationLimit"];
